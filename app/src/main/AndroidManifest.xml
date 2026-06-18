@@ -434,7 +434,7 @@
             tools:remove="screenOrientation" />
     </application>
 
-    <uses-sdk tools:overrideLibrary="rikka.shizuku.api"
+    <uses-sdk tools:overrideLibrary="rikka.shizuku.api,com.github.awxkee.avifcodercoil,com.github.awxkee.avifcoder"
         tools:ignore="ManifestOrder" />
 
 </manifest>

@@ -248,6 +248,7 @@ dependencies {
 
     // Image loading
     implementation(libs.bundles.coil)
+    implementation(libs.avif.coder.coil)
     implementation(libs.subsamplingScaleImageView) {
         exclude(module = "image-decoder")
     }

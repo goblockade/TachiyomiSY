@@ -302,7 +302,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 isVisible = true
             }
             is BufferedSource -> {
-                if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
+                val isAvif = ImageUtil.findImageType(data.peek().inputStream()) == ImageUtil.ImageType.AVIF
+                if ((!isWebtoon || alwaysDecodeLongStripWithSSIV) && !isAvif) {
                     setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true

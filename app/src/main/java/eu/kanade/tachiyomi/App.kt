@@ -25,7 +25,7 @@ import coil3.request.allowRgb565
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import com.github.awxkee.avifcoil.decoder.HeifDecoder
-import com.github.awxkee.avifcoil.decoder.animation.AnimatedAvifDecoder
+import eu.kanade.tachiyomi.data.coil.AnimatedAvifFactory
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
 import com.elvishew.xlog.XLog
@@ -235,7 +235,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 add(OkHttpNetworkFetcherFactory(callFactoryLazy::value))
                 // Decoder.Factory
                 if (Build.VERSION.SDK_INT >= 24) {
-                    add(AnimatedAvifDecoder.Factory())
+                    add(AnimatedAvifFactory())
                     add(HeifDecoder.Factory())
                 }
                 add(TachiyomiImageDecoder.Factory())

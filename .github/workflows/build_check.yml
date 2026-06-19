@@ -24,10 +24,30 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build app
-        run: ./gradlew spotlessCheck assembleDebug
+        run: |
+          ./gradlew spotlessCheck spotlessApply assembleFoss
+          tree /app/build/outputs/apk
+
+      - name: Print Log
+        if: ${{ failure() }}
+        run: cat /home/runner/work/_temp/.gradle-actions/build-results/__run-*.json
+
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/foss
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: '35.0.1'
+
+      - name: Fix apks
+        run: mv app/build/outputs/apk/foss/app-arm64-v8a-foss-unsigned-signed.apk TachiyomiSY-arm64-v8a-${{ github.sha }}.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
-          name: TachiyomiSY-${{ github.sha }}.apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: TachiyomiSY-${{ github.sha }}
+          path: TachiyomiSY-arm64-v8a-${{ github.sha }}.apk

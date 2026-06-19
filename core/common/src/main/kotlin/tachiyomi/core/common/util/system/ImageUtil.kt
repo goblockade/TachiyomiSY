@@ -28,6 +28,7 @@ import eu.kanade.tachiyomi.util.system.GLUtil
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import okio.ByteString.Companion.encodeUtf8
 import tachiyomi.decoder.Format
 import tachiyomi.decoder.ImageDecoder
 import java.io.File
@@ -87,12 +88,20 @@ object ImageUtil {
                 // Animated Heif on Android 11+
                 Format.Heif -> type.isAnimated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
                 // Animated AVIF (avis brand) via avif-coder-coil
-                Format.Avif -> type.isAnimated && Build.VERSION.SDK_INT >= 24
+                // Note: native decoder always returns isAnimated=false for AVIF,
+                // so we check the ftyp bytes directly
+                Format.Avif -> isAnimatedAvif(source) && Build.VERSION.SDK_INT >= 24
                 else -> false
             }
         } catch (e: Exception) {
             false
         }
+    }
+
+    private val AVIS = "ftypavis".encodeUtf8()
+
+    private fun isAnimatedAvif(source: BufferedSource): Boolean {
+        return source.peek().rangeEquals(4L, AVIS)
     }
 
     private fun getImageType(stream: InputStream): tachiyomi.decoder.ImageType? {

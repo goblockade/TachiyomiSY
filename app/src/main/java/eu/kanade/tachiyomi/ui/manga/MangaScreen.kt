@@ -197,6 +197,12 @@ class MangaScreen(
             onRefresh = screenModel::fetchAllFromSource,
             onContinueReading = { continueReading(context, screenModel.getNextUnreadChapter()) },
             onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
+            // SY -->
+            onTagSearchFromSource = { tag: String ->
+                scope.launch { performSourceTagSearch(navigator, tag, screenModel.source!!.id) }
+                Unit
+            }.takeIf { successState.manga.favorite && !successState.source.isLocalOrStub() && successState.mergedData == null },
+            // SY <--
             onCoverClicked = screenModel::showCoverDialog,
             onShareClicked = { shareManga(context, screenModel.manga, screenModel.source) }.takeIf { isHttpSource },
             onDownloadActionClicked = screenModel::runDownloadAction.takeIf { !successState.source.isLocalOrStub() },
@@ -443,6 +449,12 @@ class MangaScreen(
             // SY <--
         }
     }
+
+    // SY -->
+    private suspend fun performSourceTagSearch(navigator: Navigator, query: String, sourceId: Long) {
+        navigator.push(BrowseSourceScreen(sourceId, null, genreSearchQuery = query))
+    }
+    // SY <--
 
     /**
      * Performs a genre search using the provided genre name.

@@ -29,8 +29,8 @@ import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import kotlinx.coroutines.flow.map
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.category.model.Category
-import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.FilterKey
+import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryFilterFlags
 import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.domain.library.model.LibrarySort
@@ -75,10 +75,10 @@ fun LibrarySettingsDialog(
                 .verticalScroll(rememberScrollState()),
         ) {
             when (page) {
-            0 -> FilterPage(
-                category = category,
-                screenModel = screenModel,
-            )
+                0 -> FilterPage(
+                    category = category,
+                    screenModel = screenModel,
+                )
                 1 -> SortPage(
                     category = category,
                     screenModel = screenModel,

@@ -78,6 +78,7 @@ data class BrowseSourceScreen(
     private val filtersJson: String? = null,
     private val savedSearch: Long? = null,
     private val smartSearchConfig: SourcesScreen.SmartSearchConfig? = null,
+    private val genreSearchQuery: String? = null,
     // SY <--
 ) : Screen(), AssistContentScreen {
 
@@ -99,6 +100,7 @@ data class BrowseSourceScreen(
                 // SY -->
                 filtersJson = filtersJson,
                 savedSearch = savedSearch,
+                genreSearchQuery = genreSearchQuery,
                 // SY <--
             )
         }

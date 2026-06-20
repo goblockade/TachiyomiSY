@@ -269,6 +269,7 @@ fun ExpandableMangaDescription(
     // SY -->
     searchMetadataChips: SearchMetadataChips?,
     doSearch: (query: String, global: Boolean) -> Unit,
+    onTagSearchFromSource: ((String) -> Unit)? = null,
     // SY <--
     modifier: Modifier = Modifier,
 ) {
@@ -320,6 +321,15 @@ fun ExpandableMangaDescription(
                         },
                     )
                     // SY <--
+                    onTagSearchFromSource?.let { callback ->
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(SYMR.strings.action_search_from_source)) },
+                            onClick = {
+                                callback(tagSelected)
+                                showMenu = false
+                            },
+                        )
+                    }
                     DropdownMenuItem(
                         text = { Text(text = stringResource(MR.strings.action_copy_to_clipboard)) },
                         onClick = {

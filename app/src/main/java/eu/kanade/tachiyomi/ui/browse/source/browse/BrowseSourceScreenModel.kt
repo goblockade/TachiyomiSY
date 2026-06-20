@@ -105,6 +105,7 @@ open class BrowseSourceScreenModel(
     private val deleteSavedSearchById: DeleteSavedSearchById = Injekt.get(),
     private val insertSavedSearch: InsertSavedSearch = Injekt.get(),
     private val getExhSavedSearch: GetExhSavedSearch = Injekt.get(),
+    private val genreSearchQuery: String? = null,
     // SY <--
 ) : StateScreenModel<BrowseSourceScreenModel.State>(State(Listing.valueOf(listingQuery))) {
 
@@ -163,9 +164,63 @@ open class BrowseSourceScreenModel(
         getExhSavedSearch.subscribe(source.id, source::getFilterList)
             .map { it.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, EXHSavedSearch::name)) }
             .onEach { savedSearches ->
-                mutableState.update { it.copy(savedSearches = savedSearches) }
+                mutableState.update { it.copy(savedSearches = savedSearches.toImmutableList()) }
             }
             .launchIn(screenModelScope)
+
+        val genreQuery = genreSearchQuery
+        if (genreQuery != null && source is CatalogueSource) {
+            val filters = source.getFilterList()
+            var genreExists = false
+
+            filterLoop@ for (sourceFilter in filters) {
+                when {
+                    sourceFilter is SourceModelFilter.Group<*> -> {
+                        for (filter in sourceFilter.state) {
+                            if (filter is SourceModelFilter<*> && filter.name.equals(genreQuery, true)) {
+                                when (filter) {
+                                    is SourceModelFilter.TriState -> filter.state = 1
+                                    is SourceModelFilter.CheckBox -> filter.state = true
+                                    else -> {}
+                                }
+                                genreExists = true
+                                break@filterLoop
+                            }
+                        }
+                    }
+                    sourceFilter is SourceModelFilter.Select<*> -> {
+                        val index = sourceFilter.values.filterIsInstance<String>()
+                            .indexOfFirst { it.equals(genreQuery, true) }
+                        if (index != -1) {
+                            sourceFilter.state = index
+                            genreExists = true
+                            break@filterLoop
+                        }
+                    }
+                    sourceFilter is SourceModelFilter.AutoComplete -> {
+                        if (genreQuery.contains(':')) {
+                            @Suppress("UNCHECKED_CAST")
+                            (sourceFilter as SourceModelFilter.AutoComplete).state = listOf(genreQuery.trimEnd('$'))
+                            genreExists = true
+                            break@filterLoop
+                        }
+                    }
+                }
+            }
+
+            mutableState.update {
+                val listing = if (genreExists) {
+                    Listing.Search(query = null, filters = filters)
+                } else {
+                    Listing.Search(query = genreQuery, filters = filters)
+                }
+                it.copy(
+                    filters = filters,
+                    listing = listing,
+                    toolbarQuery = listing.query,
+                )
+            }
+        }
         // SY <--
     }
 

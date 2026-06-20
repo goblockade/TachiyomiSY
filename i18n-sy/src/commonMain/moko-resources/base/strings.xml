@@ -738,4 +738,10 @@
 
     <!-- Humanize time -->
     <string name="humanize_fallback">moments ago</string>
+
+    <!-- Library filter -->
+    <string name="filter_mode">Filter mode</string>
+    <string name="filter_mode_and">AND</string>
+    <string name="filter_mode_or">OR</string>
+    <string name="categorized_filter_settings">Per-category settings for filter</string>
 </resources>

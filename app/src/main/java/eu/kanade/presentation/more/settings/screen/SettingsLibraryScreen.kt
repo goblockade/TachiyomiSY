@@ -110,6 +110,20 @@ object SettingsLibraryScreen : SearchableSettings {
                         true
                     },
                 ),
+                // SY -->
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.categorizedFilterSettings,
+                    title = stringResource(SYMR.strings.categorized_filter_settings),
+                    onValueChanged = {
+                        if (!it) {
+                            scope.launch {
+                                Injekt.get<ResetCategoryFlags>().await()
+                            }
+                        }
+                        true
+                    },
+                ),
+                // SY <--
             ),
         )
     }

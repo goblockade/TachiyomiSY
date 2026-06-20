@@ -392,6 +392,25 @@ class Downloader(
                 ?.filter { it.extension == "tmp" }
                 ?.forEach { it.delete() }
 
+            // SY -->
+            // Pre-build file lookup map to avoid O(n²) listFiles() calls per page
+            val existingFiles = buildMap<String, UniFile> {
+                tmpDir.listFiles().orEmpty()
+                    .filter { it.name != null && it.name!!.isNotEmpty() }
+                    .filterNot { it.name!!.endsWith(".tmp") }
+                    .forEach { f ->
+                        val name = f.name!!
+                        // "001.jpg" → "001", "001__001.jpg" → "001"
+                        val key = name.substringBefore('.').substringBefore("__")
+                        val current = get(key)
+                        if (current == null || (!name.contains("__") && current.name!!.contains("__"))) {
+                            // Prefer non-split file over split
+                            put(key, f)
+                        }
+                    }
+            }
+            // SY <--
+
             download.status = Download.State.DOWNLOADING
 
             // Start downloading images, consider we can have downloaded images already
@@ -407,7 +426,7 @@ class Downloader(
                         }
                     }
 
-                    withIOContext { getOrDownloadImage(page, download, tmpDir, dataSaver) }
+                    withIOContext { getOrDownloadImage(page, download, tmpDir, dataSaver, existingFiles) }
                     emit(page)
                 }
                     .flowOn(Dispatchers.IO)
@@ -458,7 +477,13 @@ class Downloader(
      * @param download the download of the page.
      * @param tmpDir the temporary directory of the download.
      */
-    private suspend fun getOrDownloadImage(page: Page, download: Download, tmpDir: UniFile, dataSaver: DataSaver) {
+    private suspend fun getOrDownloadImage(
+        page: Page,
+        download: Download,
+        tmpDir: UniFile,
+        dataSaver: DataSaver,
+        existingFiles: Map<String, UniFile> = emptyMap(),
+    ) {
         // If the image URL is empty, do nothing
         if (page.imageUrl == null) {
             return
@@ -471,9 +496,10 @@ class Downloader(
         // Delete temp file if it exists
         tmpFile?.delete()
 
-        // Try to find the image file
-        val imageFile = tmpDir.listFiles()?.firstOrNull {
-            it.name!!.startsWith("$filename.") || it.name!!.startsWith("${filename}__001")
+        // Try to find the image file (uses pre-built lookup map, falls back to listing)
+        val imageFile = existingFiles[filename]?.takeIf { f ->
+            val size = f.length()
+            size == -1L || size > 0L
         }
 
         try {

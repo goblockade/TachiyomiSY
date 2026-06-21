@@ -10,6 +10,7 @@
     <string name="action_start_reading">Start reading</string>
     <string name="action_edit_info">Edit info</string>
     <string name="action_search_from_source">Search from source</string>
+    <string name="action_toggle_nsfw_only">Toggle NSFW only</string>
 
     <!-- Entry Type -->
     <string name="entry_type_manga">Manga</string>

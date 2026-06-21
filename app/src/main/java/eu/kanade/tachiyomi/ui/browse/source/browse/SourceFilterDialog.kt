@@ -23,7 +23,6 @@ import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
 import tachiyomi.core.common.preference.TriState
-import tachiyomi.domain.source.model.EXHSavedSearch
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.CheckboxItem
 import tachiyomi.presentation.core.components.CollapsibleBox
@@ -46,8 +45,6 @@ fun SourceFilterDialog(
     startExpanded: Boolean,
     savedSearches: List<EXHSavedSearch>,
     onSave: () -> Unit,
-    onSavedSearch: (EXHSavedSearch) -> Unit,
-    onSavedSearchPress: (EXHSavedSearch) -> Unit,
     openMangaDexRandom: (() -> Unit)?,
     openMangaDexFollows: (() -> Unit)?,
     // SY <--
@@ -101,16 +98,8 @@ fun SourceFilterDialog(
                 }
             }
 
-            item {
-                SavedSearchItem(
-                    savedSearches = savedSearches,
-                    onSavedSearch = onSavedSearch,
-                    onSavedSearchPress = onSavedSearchPress,
-                )
-            }
-
             items(filters) {
-                FilterItem(it, updateFilters /* SY --> */, startExpanded /* SY <-- */)
+                FilterItem(it, updateFilters /* SY --> */, false /* SY <-- */)
             }
         }
     }
@@ -181,7 +170,7 @@ private fun FilterItem(filter: Filter<*>, onUpdate: () -> Unit/* SY --> */, star
             CollapsibleBox(
                 heading = filter.name,
                 // SY -->
-                startExpanded = startExpanded,
+                startExpanded = false,
                 // SY <--
             ) {
                 Column {
@@ -212,7 +201,7 @@ private fun FilterItem(filter: Filter<*>, onUpdate: () -> Unit/* SY --> */, star
             CollapsibleBox(
                 heading = filter.name,
                 // SY -->
-                startExpanded = startExpanded,
+                startExpanded = false,
                 // SY <--
             ) {
                 Column {

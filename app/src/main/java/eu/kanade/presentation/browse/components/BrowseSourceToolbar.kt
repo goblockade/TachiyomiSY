@@ -23,7 +23,6 @@ import eu.kanade.tachiyomi.source.Source
 import exh.source.anyIs
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.source.local.LocalSource
 
@@ -39,9 +38,6 @@ fun BrowseSourceToolbar(
     onHelpClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSearch: (String) -> Unit,
-    // SY -->
-    onAddShortcut: (() -> Unit)? = null,
-    // SY <--
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     // Avoid capturing unstable source in actions lambda

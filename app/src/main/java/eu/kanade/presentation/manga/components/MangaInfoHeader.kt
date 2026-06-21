@@ -321,15 +321,6 @@ fun ExpandableMangaDescription(
                         },
                     )
                     // SY <--
-                    onTagSearchFromSource?.let { callback ->
-                        DropdownMenuItem(
-                            text = { Text(text = stringResource(SYMR.strings.action_search_from_source)) },
-                            onClick = {
-                                callback(tagSelected)
-                                showMenu = false
-                            },
-                        )
-                    }
                     DropdownMenuItem(
                         text = { Text(text = stringResource(MR.strings.action_copy_to_clipboard)) },
                         onClick = {
@@ -347,6 +338,9 @@ fun ExpandableMangaDescription(
                                 tagSelected = it
                                 showMenu = true
                             },
+                            onLongClick = { tag ->
+                                onTagSearchFromSource?.invoke(tag)
+                            },
                         )
                     } else {
                         // SY <--
@@ -361,6 +355,9 @@ fun ExpandableMangaDescription(
                                     onClick = {
                                         tagSelected = it
                                         showMenu = true
+                                    },
+                                    onLongClick = {
+                                        onTagSearchFromSource?.invoke(it)
                                     },
                                 )
                             }
@@ -378,6 +375,9 @@ fun ExpandableMangaDescription(
                                 onClick = {
                                     tagSelected = it
                                     showMenu = true
+                                },
+                                onLongClick = {
+                                    onTagSearchFromSource?.invoke(it)
                                 },
                             )
                         }

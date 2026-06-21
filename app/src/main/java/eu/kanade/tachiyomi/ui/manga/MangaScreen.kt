@@ -201,7 +201,7 @@ class MangaScreen(
             onTagSearchFromSource = { tag: String ->
                 scope.launch { performSourceTagSearch(navigator, tag, screenModel.source!!.id) }
                 Unit
-            }.takeIf { successState.manga.favorite && !successState.source.isLocalOrStub() && successState.mergedData == null },
+            }.takeIf { !successState.source.isLocalOrStub() && successState.mergedData == null },
             // SY <--
             onCoverClicked = screenModel::showCoverDialog,
             onShareClicked = { shareManga(context, screenModel.manga, screenModel.source) }.takeIf { isHttpSource },

@@ -24,14 +24,18 @@ import eu.kanade.tachiyomi.ui.browse.extension.ExtensionsScreenModel
 import eu.kanade.tachiyomi.ui.browse.extension.extensionsTab
 import eu.kanade.tachiyomi.ui.browse.feed.feedTab
 import eu.kanade.tachiyomi.ui.browse.migration.sources.migrateSourceTab
+import eu.kanade.tachiyomi.ui.browse.shortcut.ShortcutsScreenModel
+import eu.kanade.tachiyomi.ui.browse.shortcut.shortcutsTab
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.browse.source.sourcesTab
 import eu.kanade.tachiyomi.ui.main.MainActivity
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -67,44 +71,58 @@ data object BrowseTab : Tab {
         // SY -->
         val hideFeedTab by remember { Injekt.get<UiPreferences>().hideFeedTab.asState(scope) }
         val feedTabInFront by remember { Injekt.get<UiPreferences>().feedTabInFront.asState(scope) }
+        val hideShortcutsTab by remember { Injekt.get<UiPreferences>().hideShortcutsTab.asState(scope) }
+        val hideMigrateTab by remember { Injekt.get<UiPreferences>().hideMigrateTab.asState(scope) }
         // SY <--
 
         // Hoisted for extensions tab's search bar
         val extensionsScreenModel = rememberScreenModel { ExtensionsScreenModel() }
         val extensionsState by extensionsScreenModel.state.collectAsState()
+        // SY -->
+        val shortcutsScreenModel = rememberScreenModel { ShortcutsScreenModel() }
+        val shortcutsState by shortcutsScreenModel.state.collectAsState()
+        // SY <--
 
         // SY -->
-        val tabs = if (hideFeedTab) {
-            listOf(
-                sourcesTab(),
-                extensionsTab(extensionsScreenModel),
-                migrateSourceTab(),
-            )
-        } else if (feedTabInFront) {
-            listOf(
-                feedTab(),
-                sourcesTab(),
-                extensionsTab(extensionsScreenModel),
-                migrateSourceTab(),
-            )
-        } else {
-            listOf(
-                sourcesTab(),
-                feedTab(),
-                extensionsTab(extensionsScreenModel),
-                migrateSourceTab(),
-            )
-        }
+        val tabs = buildList {
+            if (!hideFeedTab && feedTabInFront) {
+                add(feedTab())
+            }
+            add(sourcesTab())
+            if (!hideShortcutsTab) {
+                add(shortcutsTab(screenModel = shortcutsScreenModel))
+            }
+            add(extensionsTab(extensionsScreenModel))
+            if (!hideMigrateTab) {
+                add(migrateSourceTab())
+            }
+            if (!hideFeedTab && !feedTabInFront) {
+                add(feedTab())
+            }
+        }.toImmutableList()
         // SY <--
 
         val state = rememberPagerState { tabs.size }
+
+        // SY -->
+        val searchQuery = when (tabs.getOrNull(state.currentPage)?.titleRes) {
+            SYMR.strings.shortcuts -> shortcutsState.searchQuery
+            else -> extensionsState.searchQuery
+        }
+        val onChangeSearchQuery: (String?) -> Unit = { query ->
+            when (tabs.getOrNull(state.currentPage)?.titleRes) {
+                SYMR.strings.shortcuts -> shortcutsScreenModel.setSearchQuery(query)
+                else -> extensionsScreenModel.search(query)
+            }
+        }
+        // SY <--
 
         TabbedScreen(
             titleRes = MR.strings.browse,
             tabs = tabs,
             state = state,
-            searchQuery = extensionsState.searchQuery,
-            onChangeSearchQuery = extensionsScreenModel::search,
+            searchQuery = searchQuery,
+            onChangeSearchQuery = onChangeSearchQuery,
         )
         LaunchedEffect(Unit) {
             switchToExtensionTabChannel.receiveAsFlow()

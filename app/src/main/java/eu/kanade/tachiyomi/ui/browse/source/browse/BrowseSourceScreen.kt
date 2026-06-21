@@ -165,6 +165,9 @@ data class BrowseSourceScreen(
                         onHelpClick = onHelpClick,
                         onSettingsClick = { navigator.push(SourcePreferencesScreen(sourceId)) },
                         onSearch = screenModel::search,
+                        // SY -->
+                        onAddShortcut = screenModel::onSaveSearch,
+                        // SY <--
                     )
 
                     Row(

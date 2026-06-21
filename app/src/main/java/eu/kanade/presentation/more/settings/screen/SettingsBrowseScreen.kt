@@ -95,6 +95,24 @@ object SettingsBrowseScreen : SearchableSettings {
                     ),
                 ),
             ),
+            Preference.PreferenceGroup(
+                title = stringResource(SYMR.strings.shortcuts),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = uiPreferences.hideShortcutsTab,
+                        title = stringResource(SYMR.strings.pref_hide_shortcuts_tab),
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.migrate),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = uiPreferences.hideMigrateTab,
+                        title = stringResource(SYMR.strings.pref_hide_migrate_tab),
+                    ),
+                ),
+            ),
             // SY <--
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.label_sources),

@@ -200,7 +200,7 @@ open class BrowseSourceScreenModel(
                     sourceFilter is SourceModelFilter.AutoComplete -> {
                         if (genreQuery.contains(':')) {
                             @Suppress("UNCHECKED_CAST")
-                            (sourceFilter as SourceModelFilter.AutoComplete).state = listOf(genreQuery.trimEnd('$'))
+                            sourceFilter.state = listOf(genreQuery.trimEnd('$'))
                             genreExists = true
                             break@filterLoop
                         }

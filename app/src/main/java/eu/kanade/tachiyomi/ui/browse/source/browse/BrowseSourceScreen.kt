@@ -40,8 +40,10 @@ import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.MissingSourceScreen
 import eu.kanade.presentation.browse.components.BrowseSourceToolbar
 import eu.kanade.presentation.browse.components.RemoveMangaDialog
+import eu.kanade.presentation.browse.components.SavedSearchActionsDialog
 import eu.kanade.presentation.browse.components.SavedSearchCreateDialog
 import eu.kanade.presentation.browse.components.SavedSearchDeleteDialog
+import eu.kanade.presentation.browse.components.SavedSearchUpdateDialog
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.manga.DuplicateMangaDialog
 import eu.kanade.presentation.util.AssistContentScreen
@@ -362,6 +364,19 @@ data class BrowseSourceScreen(
                 onDismissRequest = onDismissRequest,
                 currentSavedSearches = dialog.currentSavedSearches,
                 saveSearch = screenModel::saveSearch,
+            )
+            is BrowseSourceScreenModel.Dialog.SavedSearchActions -> SavedSearchActionsDialog(
+                onDismissRequest = onDismissRequest,
+                name = dialog.search.name,
+                updateSavedSearch = { screenModel.showUpdateSavedSearch(dialog.search) },
+                deleteSavedSearch = {
+                    screenModel.showDeleteSavedSearch(dialog.search)
+                },
+            )
+            is BrowseSourceScreenModel.Dialog.UpdateSavedSearch -> SavedSearchUpdateDialog(
+                onDismissRequest = onDismissRequest,
+                name = dialog.search.name,
+                updateSavedSearch = { screenModel.updateSavedSearch(dialog.search) },
             )
             is BrowseSourceScreenModel.Dialog.DeleteSavedSearch -> SavedSearchDeleteDialog(
                 onDismissRequest = onDismissRequest,

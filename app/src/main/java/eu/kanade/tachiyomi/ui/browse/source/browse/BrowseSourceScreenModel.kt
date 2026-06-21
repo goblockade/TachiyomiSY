@@ -493,6 +493,8 @@ open class BrowseSourceScreenModel(
         data class Migrate(val target: Manga, val current: Manga) : Dialog
 
         // SY -->
+        data class SavedSearchActions(val search: EXHSavedSearch) : Dialog
+        data class UpdateSavedSearch(val search: EXHSavedSearch) : Dialog
         data class DeleteSavedSearch(val idToDelete: Long, val name: String) : Dialog
         data class CreateSavedSearch(val currentSavedSearches: List<String>) : Dialog
         // SY <--
@@ -553,7 +555,37 @@ open class BrowseSourceScreenModel(
     }
 
     fun onSavedSearchPress(search: EXHSavedSearch) {
+        mutableState.update { it.copy(dialog = Dialog.SavedSearchActions(search)) }
+    }
+
+    fun showDeleteSavedSearch(search: EXHSavedSearch) {
         mutableState.update { it.copy(dialog = Dialog.DeleteSavedSearch(search.id, search.name)) }
+    }
+
+    fun showUpdateSavedSearch(search: EXHSavedSearch) {
+        mutableState.update { it.copy(dialog = Dialog.UpdateSavedSearch(search)) }
+    }
+
+    fun updateSavedSearch(search: EXHSavedSearch) {
+        if (source !is CatalogueSource) return
+        screenModelScope.launchNonCancellable {
+            val query = state.value.toolbarQuery?.takeUnless {
+                it.isBlank() || it == GetRemoteManga.QUERY_POPULAR || it == GetRemoteManga.QUERY_LATEST
+            }?.trim()
+            val filterList = state.value.filters.ifEmpty { source.getFilterList() }
+            deleteSavedSearchById.await(search.id)
+            insertSavedSearch.await(
+                SavedSearch(
+                    id = -1,
+                    source = source.id,
+                    name = search.name.trim(),
+                    query = query,
+                    filtersJson = runCatching {
+                        filterSerializer.serialize(filterList).ifEmpty { null }?.let { Json.encodeToString(it) }
+                    }.getOrNull(),
+                ),
+            )
+        }
     }
 
     fun saveSearch(

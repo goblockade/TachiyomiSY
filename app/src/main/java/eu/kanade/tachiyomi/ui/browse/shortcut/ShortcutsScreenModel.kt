@@ -29,6 +29,7 @@ enum class ShortcutSortMode {
 
 enum class ShortcutGroupMode {
     Source,
+    Name,
     Ungrouped,
 }
 
@@ -43,7 +44,7 @@ data class ShortcutGroup(
 )
 
 sealed interface ShortcutUiModel {
-    data class Header(val sourceName: String) : ShortcutUiModel
+    data class Header(val label: String, val isExpanded: Boolean) : ShortcutUiModel
     data class Item(val item: ShortcutItem) : ShortcutUiModel
 }
 
@@ -67,6 +68,7 @@ class ShortcutsScreenModel(
         val sortMode: ShortcutSortMode = ShortcutSortMode.Date,
         val sortAscending: Boolean = false,
         val groupMode: ShortcutGroupMode = ShortcutGroupMode.Ungrouped,
+        val expandedGroups: Set<String> = emptySet(),
         val dialog: ShortcutDialog? = null,
     )
 
@@ -79,6 +81,7 @@ class ShortcutsScreenModel(
     private val sortModeFlow = MutableStateFlow(state.value.sortMode)
     private val sortAscendingFlow = MutableStateFlow(state.value.sortAscending)
     private val groupModeFlow = MutableStateFlow(state.value.groupMode)
+    private val expandedGroupsFlow = MutableStateFlow<Set<String>>(emptySet())
 
     init {
         combine(
@@ -87,7 +90,17 @@ class ShortcutsScreenModel(
             sortModeFlow,
             sortAscendingFlow,
             groupModeFlow,
-        ) { savedSearches: List<SavedSearch>, query: String?, sort: ShortcutSortMode, ascending: Boolean, group: ShortcutGroupMode ->
+            expandedGroupsFlow,
+        ) { args ->
+            @Suppress("UNCHECKED_CAST")
+            val savedSearches: List<SavedSearch> = args[0] as List<SavedSearch>
+            val query: String? = args[1] as String?
+            val sort: ShortcutSortMode = args[2] as ShortcutSortMode
+            val ascending: Boolean = args[3] as Boolean
+            val group: ShortcutGroupMode = args[4] as ShortcutGroupMode
+
+            @Suppress("UNCHECKED_CAST")
+            val expandedGroups: Set<String> = args[5] as Set<String>
             val items = savedSearches
                 .map { savedSearch ->
                     val source = sourceManager.get(savedSearch.source)
@@ -124,26 +137,48 @@ class ShortcutsScreenModel(
                         }
                     }
                     ShortcutSortMode.Random -> {
-                        val seed = items.fold(0) { acc, item -> acc + item.savedSearch.id.toInt() }
-                        list.shuffled(Random(seed))
+                        list.shuffled()
                     }
                 }
             }
 
-            val uiModels = when (group) {
-                ShortcutGroupMode.Ungrouped -> sortFn(items).map { ShortcutUiModel.Item(it) as ShortcutUiModel }
+            val grouped: List<Pair<String, List<ShortcutItem>>> = when (group) {
+                ShortcutGroupMode.Ungrouped -> listOf("" to sortFn(items))
                 ShortcutGroupMode.Source -> {
                     items.groupBy { it.sourceName }.toSortedMap()
-                        .flatMap { (sourceName, groupItems) ->
-                            listOf(ShortcutUiModel.Header(sourceName)) + sortFn(groupItems).map { ShortcutUiModel.Item(it) }
-                        }
+                        .map { (sourceName, groupItems) -> sourceName to sortFn(groupItems) }
+                }
+                ShortcutGroupMode.Name -> {
+                    items.groupBy { it.savedSearch.name }.toSortedMap()
+                        .map { (name, groupItems) -> name to sortFn(groupItems) }
+                }
+            }
+
+            val uiModels = if (group == ShortcutGroupMode.Ungrouped) {
+                grouped.first().second.map { ShortcutUiModel.Item(it) as ShortcutUiModel }
+            } else {
+                grouped.flatMap { (label, groupItems) ->
+                    val isExpanded = label in expandedGroups
+                    if (isExpanded) {
+                        listOf(ShortcutUiModel.Header(label, true)) + groupItems.map { ShortcutUiModel.Item(it) }
+                    } else {
+                        listOf(ShortcutUiModel.Header(label, false))
+                    }
                 }
             }.toImmutableList()
 
-            State(uiModels = uiModels, searchQuery = query, sortMode = sort, sortAscending = ascending, groupMode = group)
+            State(uiModels = uiModels, searchQuery = query, sortMode = sort, sortAscending = ascending, groupMode = group, expandedGroups = expandedGroups)
         }
             .onEach { newState -> mutableState.value = newState }
             .launchIn(screenModelScope)
+    }
+
+    fun toggleGroup(label: String) {
+        expandedGroupsFlow.value = if (label in expandedGroupsFlow.value) {
+            expandedGroupsFlow.value - label
+        } else {
+            expandedGroupsFlow.value + label
+        }
     }
 
     fun setSearchQuery(query: String?) {

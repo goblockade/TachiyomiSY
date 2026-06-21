@@ -73,7 +73,7 @@ class UiPreferences(
 
     val shortcutsSortMode: Preference<Int> = preferenceStore.getInt("shortcuts_sort_mode", 1) // Date
     val shortcutsSortAscending: Preference<Boolean> = preferenceStore.getBoolean("shortcuts_sort_ascending", false)
-    val shortcutsGroupMode: Preference<Int> = preferenceStore.getInt("shortcuts_group_mode", 1) // Ungrouped
+    val shortcutsGroupMode: Preference<Int> = preferenceStore.getInt("shortcuts_group_mode", 2) // Ungrouped
 
     // SY <--
 

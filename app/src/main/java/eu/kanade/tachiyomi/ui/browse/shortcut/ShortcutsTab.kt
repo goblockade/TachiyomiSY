@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.browse.shortcut
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -91,22 +95,34 @@ fun Screen.shortcutsTab(
                             items = state.uiModels,
                             key = {
                                 when (it) {
-                                    is ShortcutUiModel.Header -> "header_${it.sourceName}"
+                                    is ShortcutUiModel.Header -> "header_${it.label}"
                                     is ShortcutUiModel.Item -> "item_${it.item.savedSearch.id}"
                                 }
                             },
                         ) { uiModel ->
                             when (uiModel) {
                                 is ShortcutUiModel.Header -> {
-                                    Text(
-                                        text = uiModel.sourceName,
+                                    Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
+                                            .clickable { screenModel.toggleGroup(uiModel.label) }
                                             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Text(
+                                            text = uiModel.label,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                                        )
+                                        Icon(
+                                            imageVector = if (uiModel.isExpanded) Icons.Default.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                            contentDescription = if (uiModel.isExpanded) "Collapse" else "Expand",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
                                 is ShortcutUiModel.Item -> {
                                     ShortcutRow(
@@ -274,6 +290,11 @@ private fun GroupTab(
         icon = painterResource(R.drawable.ic_browse_filled_24dp),
         selected = groupMode == ShortcutGroupMode.Source,
         onClick = { onGroupModeChange(ShortcutGroupMode.Source) },
+    )
+    IconItem(
+        label = stringResource(SYMR.strings.shortcuts_group_name),
+        icon = Icons.AutoMirrored.Outlined.Label,
+        onClick = { onGroupModeChange(ShortcutGroupMode.Name) },
     )
     IconItem(
         label = stringResource(SYMR.strings.shortcuts_group_ungrouped),

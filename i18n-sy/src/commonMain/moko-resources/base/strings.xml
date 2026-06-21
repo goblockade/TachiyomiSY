@@ -428,6 +428,9 @@
     <string name="save_search_failed_to_load_message">An error occurred while loading your saved searches.</string>
     <string name="save_search_delete">Delete saved search query?</string>
     <string name="save_search_delete_message">Are you sure you wish to delete your saved search query: \'%1$s\'?</string>
+    <string name="save_search_update">Update saved search?</string>
+    <string name="save_search_update_message">Update saved search \'%1$s\' with current query and filters?</string>
+    <string name="save_search_update_action">Update</string>
     <string name="save_search_invalid">Saved search invalid, filters have changed</string>
     <string name="save_search_invalid_name">Invalid saved search name</string>
 
@@ -511,6 +514,7 @@
     <string name="delete_shortcut_confirmation">Delete this shortcut?</string>
     <string name="shortcuts_group">Group</string>
     <string name="shortcuts_group_source">Source</string>
+    <string name="shortcuts_group_name">Name</string>
     <string name="shortcuts_group_ungrouped">Ungrouped</string>
     <string name="pref_hide_shortcuts_tab">Hide Shortcuts tab</string>
     <string name="pref_hide_migrate_tab">Hide Migrate tab</string>

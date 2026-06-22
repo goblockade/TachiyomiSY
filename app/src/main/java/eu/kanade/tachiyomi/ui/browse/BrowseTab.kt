@@ -26,6 +26,7 @@ import eu.kanade.tachiyomi.ui.browse.feed.feedTab
 import eu.kanade.tachiyomi.ui.browse.migration.sources.migrateSourceTab
 import eu.kanade.tachiyomi.ui.browse.shortcut.ShortcutsScreenModel
 import eu.kanade.tachiyomi.ui.browse.shortcut.shortcutsTab
+import eu.kanade.tachiyomi.ui.browse.source.SourcesScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.browse.source.sourcesTab
 import eu.kanade.tachiyomi.ui.main.MainActivity
@@ -75,10 +76,11 @@ data object BrowseTab : Tab {
         val hideMigrateTab by remember { Injekt.get<UiPreferences>().hideMigrateTab.asState(scope) }
         // SY <--
 
-        // Hoisted for extensions tab's search bar
+        // SY -->
+        val sourcesScreenModel = rememberScreenModel { SourcesScreenModel(smartSearchConfig = null) }
+        val sourcesState by sourcesScreenModel.state.collectAsState()
         val extensionsScreenModel = rememberScreenModel { ExtensionsScreenModel() }
         val extensionsState by extensionsScreenModel.state.collectAsState()
-        // SY -->
         val shortcutsScreenModel = rememberScreenModel { ShortcutsScreenModel() }
         val shortcutsState by shortcutsScreenModel.state.collectAsState()
         // SY <--
@@ -88,7 +90,7 @@ data object BrowseTab : Tab {
             if (!hideFeedTab && feedTabInFront) {
                 add(feedTab())
             }
-            add(sourcesTab())
+            add(sourcesTab(screenModel = sourcesScreenModel))
             if (!hideShortcutsTab) {
                 add(shortcutsTab(screenModel = shortcutsScreenModel))
             }
@@ -106,11 +108,13 @@ data object BrowseTab : Tab {
 
         // SY -->
         val searchQuery = when (tabs.getOrNull(state.currentPage)?.titleRes) {
+            MR.strings.label_sources -> sourcesState.searchQuery
             SYMR.strings.shortcuts -> shortcutsState.searchQuery
             else -> extensionsState.searchQuery
         }
         val onChangeSearchQuery: (String?) -> Unit = { query ->
             when (tabs.getOrNull(state.currentPage)?.titleRes) {
+                MR.strings.label_sources -> sourcesScreenModel.setSearchQuery(query)
                 SYMR.strings.shortcuts -> shortcutsScreenModel.setSearchQuery(query)
                 else -> extensionsScreenModel.search(query)
             }

@@ -420,6 +420,7 @@
     <string name="searching_source">Searching source…</string>
     <string name="could_not_find_entry">Couldn\'t find the entry in the source!</string>
     <string name="automatic_search_error">Error performing automatic search!</string>
+    <string name="search_source_hint">Search sources by name</string>
 
     <!-- Saved Searches -->
     <string name="saved_searches">Saved Searches</string>

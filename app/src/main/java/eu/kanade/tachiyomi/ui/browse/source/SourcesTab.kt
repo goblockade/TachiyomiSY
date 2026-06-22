@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.browse.source
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.TravelExplore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,10 +31,11 @@ import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun Screen.sourcesTab(
+    screenModel: SourcesScreenModel? = null,
     smartSearchConfig: SmartSearchConfig? = null,
 ): TabContent {
     val navigator = LocalNavigator.currentOrThrow
-    val screenModel = rememberScreenModel { SourcesScreenModel(smartSearchConfig = smartSearchConfig) }
+    val screenModel = screenModel ?: rememberScreenModel { SourcesScreenModel(smartSearchConfig = smartSearchConfig) }
     val state by screenModel.state.collectAsState()
 
     return TabContent(
@@ -42,6 +44,7 @@ fun Screen.sourcesTab(
             true -> MR.strings.label_sources
             false -> SYMR.strings.find_in_another_source
         },
+        searchEnabled = smartSearchConfig == null,
         actions = listOf(
             AppBar.Action(
                 title = stringResource(MR.strings.action_global_search),

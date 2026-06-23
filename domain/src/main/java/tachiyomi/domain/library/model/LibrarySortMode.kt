@@ -35,6 +35,8 @@ data class LibrarySort(
 
         // SY -->
         data object TagList : Type(0b00100100)
+
+        data object TotalItems : Type(0b00101000)
         // SY <--
 
         companion object {
@@ -83,7 +85,7 @@ data class LibrarySort(
                 Type.DateAdded,
                 Type.TrackerMean,
                 Type.Random,
-                /* SY -->*/ Type.TagList, /* SY <--*/
+                /* SY -->*/ Type.TagList, Type.TotalItems, /* SY <--*/
             )
         }
         val directions by lazy { setOf(Direction.Ascending, Direction.Descending) }
@@ -114,6 +116,7 @@ data class LibrarySort(
                     "RANDOM" -> Type.Random
                     // SY -->
                     "TAG_LIST" -> Type.TagList
+                    "TOTAL_ITEMS" -> Type.TotalItems
                     // SY <--
                     else -> Type.Alphabetical
                 }
@@ -139,6 +142,7 @@ data class LibrarySort(
             Type.Random -> "RANDOM"
             // SY -->
             Type.TagList -> "TAG_LIST"
+            Type.TotalItems -> "TOTAL_ITEMS"
             // SY <--
         }
         val direction = if (direction == Direction.Ascending) "ASCENDING" else "DESCENDING"

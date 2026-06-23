@@ -620,6 +620,20 @@ class LibraryScreenModel(
             }
         }
 
+        fun parseTotalPages(description: String?): Long {
+            if (description == null) return 0L
+            val regex = Regex("""Pages:\s*(\d+)""", RegexOption.IGNORE_CASE)
+            return regex.find(description)?.groupValues?.get(1)?.toLongOrNull() ?: 0L
+        }
+
+        fun getTotalSortValue(item: LibraryItem): Long {
+            return if (item.libraryManga.totalChapters == 1L) {
+                parseTotalPages(item.libraryManga.manga.description)
+            } else {
+                item.libraryManga.totalChapters
+            }
+        }
+
         fun LibrarySort.comparator(): Comparator<LibraryItem> = Comparator { manga1, manga2 ->
             // SY -->
             val sort = groupSort ?: this
@@ -679,6 +693,10 @@ class LibraryScreenModel(
                         manga2.libraryManga.manga.genre?.contains(it) ?: false
                     }
                     manga1IndexOfTag.compareTo(manga2IndexOfTag)
+                }
+
+                LibrarySort.Type.TotalItems -> {
+                    getTotalSortValue(manga1).compareTo(getTotalSortValue(manga2))
                 }
                 // SY <--
             }

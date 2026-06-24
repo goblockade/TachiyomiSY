@@ -403,6 +403,12 @@ private fun ColumnScope.DisplayPage(
         label = stringResource(MR.strings.action_display_show_continue_reading_button),
         pref = screenModel.libraryPreferences.showContinueReadingButton,
     )
+    // SY -->
+    CheckboxItem(
+        label = stringResource(SYMR.strings.action_display_pages_badge),
+        pref = screenModel.libraryPreferences.showPagesBadge,
+    )
+    // SY <--
 
     HeadingItem(MR.strings.tabs_header)
     CheckboxItem(

@@ -45,6 +45,9 @@ fun LibraryContent(
     getDisplayMode: (Int) -> PreferenceMutableState<LibraryDisplayMode>,
     getColumnsForOrientation: (Boolean) -> PreferenceMutableState<Int>,
     getItemsForCategory: (Category) -> List<LibraryItem>,
+    // SY -->
+    showPagesBadge: Boolean = false,
+    // SY <--
 ) {
     Column(
         modifier = Modifier.padding(
@@ -112,6 +115,9 @@ fun LibraryContent(
                 },
                 onLongClickManga = onToggleRangeSelection,
                 onClickContinueReading = onContinueReadingClicked,
+                // SY -->
+                showPagesBadge = showPagesBadge,
+                // SY <--
             )
         }
 

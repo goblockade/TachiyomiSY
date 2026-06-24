@@ -519,6 +519,7 @@
     <string name="shortcuts_group_name">Name</string>
     <string name="shortcuts_group_ungrouped">Ungrouped</string>
     <string name="action_sort_total_items">Total items (pages / chapters)</string>
+    <string name="action_display_pages_badge">Show pages badge</string>
     <string name="pref_hide_shortcuts_tab">Hide Shortcuts tab</string>
     <string name="pref_hide_migrate_tab">Hide Migrate tab</string>
 

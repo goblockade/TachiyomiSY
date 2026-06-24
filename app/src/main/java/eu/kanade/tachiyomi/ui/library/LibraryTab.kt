@@ -73,6 +73,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.source.local.isLocal
 
 data object LibraryTab : Tab {
@@ -103,6 +104,9 @@ data object LibraryTab : Tab {
         val screenModel = rememberScreenModel { LibraryScreenModel() }
         val settingsScreenModel = rememberScreenModel { LibrarySettingsScreenModel() }
         val state by screenModel.state.collectAsState()
+        // SY -->
+        val showPagesBadge by screenModel.libraryPreferences.showPagesBadge.collectAsState()
+        // SY <--
 
         val snackbarHostState = remember { SnackbarHostState() }
 
@@ -269,6 +273,9 @@ data object LibraryTab : Tab {
                         getDisplayMode = { screenModel.getDisplayMode() },
                         getColumnsForOrientation = { screenModel.getColumnsForOrientation(it) },
                         getItemsForCategory = { state.getItemsForCategory(it) },
+                        // SY -->
+                        showPagesBadge = showPagesBadge,
+                        // SY <--
                     )
                 }
             }

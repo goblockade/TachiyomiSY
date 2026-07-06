@@ -146,10 +146,21 @@ class GroupSerializer(override val serializer: FilterSerializer) : Serializer<Fi
     }
 
     override fun deserialize(json: JsonObject, filter: Filter.Group<Any?>) {
-        json[STATE]!!.jsonArray.forEachIndexed { index, jsonElement ->
-            if (jsonElement !is JsonNull) {
-                @Suppress("UNCHECKED_CAST")
-                serializer.deserialize(filter.state[index] as Filter<Any?>, jsonElement.jsonObject)
+        val jsonArray = json[STATE]!!.jsonArray
+        val childJsonByName = jsonArray.mapNotNull { element ->
+            if (element is JsonNull) return@mapNotNull null
+            val jsonObj = element.jsonObject
+            val name = jsonObj["name"]?.jsonPrimitive?.content
+            if (name != null) name to jsonObj else null
+        }.toMap()
+        filter.state.forEach { childFilter ->
+            if (childFilter is Filter<*>) {
+                val childName = childFilter.name
+                val childJson = childJsonByName[childName]
+                if (childJson != null) {
+                    @Suppress("UNCHECKED_CAST")
+                    serializer.deserialize(childFilter as Filter<Any?>, childJson)
+                }
             }
         }
     }

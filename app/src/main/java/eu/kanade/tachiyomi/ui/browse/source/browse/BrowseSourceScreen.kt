@@ -40,9 +40,13 @@ import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.MissingSourceScreen
 import eu.kanade.presentation.browse.components.BrowseSourceToolbar
 import eu.kanade.presentation.browse.components.RemoveMangaDialog
+import eu.kanade.presentation.browse.components.SavedSearchActionsDialog
 import eu.kanade.presentation.browse.components.SavedSearchCreateDialog
 import eu.kanade.presentation.browse.components.SavedSearchDeleteDialog
+import eu.kanade.presentation.browse.components.SavedSearchUpdateDialog
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
+import eu.kanade.presentation.components.SuggestionChip
+import eu.kanade.presentation.components.SuggestionChipDefaults
 import eu.kanade.presentation.manga.DuplicateMangaDialog
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.Screen
@@ -78,6 +82,7 @@ data class BrowseSourceScreen(
     private val filtersJson: String? = null,
     private val savedSearch: Long? = null,
     private val smartSearchConfig: SourcesScreen.SmartSearchConfig? = null,
+    private val genreSearchQuery: String? = null,
     // SY <--
 ) : Screen(), AssistContentScreen {
 
@@ -99,6 +104,7 @@ data class BrowseSourceScreen(
                 // SY -->
                 filtersJson = filtersJson,
                 savedSearch = savedSearch,
+                genreSearchQuery = genreSearchQuery,
                 // SY <--
             )
         }
@@ -163,6 +169,7 @@ data class BrowseSourceScreen(
                         onHelpClick = onHelpClick,
                         onSettingsClick = { navigator.push(SourcePreferencesScreen(sourceId)) },
                         onSearch = screenModel::search,
+                        // SY <--
                     )
 
                     Row(
@@ -211,7 +218,8 @@ data class BrowseSourceScreen(
                         }
                         if (/* SY --> */ state.filterable /* SY <-- */) {
                             FilterChip(
-                                selected = state.listing is Listing.Search,
+                                selected = state.listing is Listing.Search &&
+                                    (state.listing as Listing.Search).savedSearchId == null,
                                 onClick = screenModel::openFilterSheet,
                                 leadingIcon = {
                                     Icon(
@@ -234,6 +242,33 @@ data class BrowseSourceScreen(
                                 },
                             )
                         }
+                        // SY -->
+                        state.savedSearches.forEach { savedSearch ->
+                            val isSelected = state.listing is Listing.Search &&
+                                (state.listing as Listing.Search).savedSearchId == savedSearch.id
+                            SuggestionChip(
+                                onClick = {
+                                    screenModel.onSavedSearch(savedSearch) {
+                                        context.toast(it)
+                                    }
+                                },
+                                onLongClick = { screenModel.onSavedSearchPress(savedSearch) },
+                                label = { Text(text = savedSearch.name) },
+                                colors = SuggestionChipDefaults.suggestionChipColors(
+                                    containerColor = if (isSelected) {
+                                        MaterialTheme.colorScheme.secondaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                    },
+                                    labelColor = if (isSelected) {
+                                        MaterialTheme.colorScheme.onSecondaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
+                                ),
+                            )
+                        }
+                        // SY <--
                     }
 
                     HorizontalDivider()
@@ -283,13 +318,6 @@ data class BrowseSourceScreen(
                     // SY -->
                     startExpanded = screenModel.startExpanded,
                     onSave = screenModel::onSaveSearch,
-                    savedSearches = state.savedSearches,
-                    onSavedSearch = { search ->
-                        screenModel.onSavedSearch(search) {
-                            context.toast(it)
-                        }
-                    },
-                    onSavedSearchPress = screenModel::onSavedSearchPress,
                     openMangaDexRandom = if (screenModel.sourceIsMangaDex) {
                         {
                             screenModel.onMangaDexRandom {
@@ -357,6 +385,19 @@ data class BrowseSourceScreen(
                 onDismissRequest = onDismissRequest,
                 currentSavedSearches = dialog.currentSavedSearches,
                 saveSearch = screenModel::saveSearch,
+            )
+            is BrowseSourceScreenModel.Dialog.SavedSearchActions -> SavedSearchActionsDialog(
+                onDismissRequest = onDismissRequest,
+                name = dialog.search.name,
+                updateSavedSearch = { screenModel.showUpdateSavedSearch(dialog.search) },
+                deleteSavedSearch = {
+                    screenModel.showDeleteSavedSearch(dialog.search)
+                },
+            )
+            is BrowseSourceScreenModel.Dialog.UpdateSavedSearch -> SavedSearchUpdateDialog(
+                onDismissRequest = onDismissRequest,
+                name = dialog.search.name,
+                updateSavedSearch = { screenModel.updateSavedSearch(dialog.search) },
             )
             is BrowseSourceScreenModel.Dialog.DeleteSavedSearch -> SavedSearchDeleteDialog(
                 onDismissRequest = onDismissRequest,

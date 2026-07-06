@@ -68,9 +68,24 @@ class FilterSerializer {
     }
 
     fun deserialize(filters: FilterList, json: JsonArray) {
-        filters.filterIsInstance<Filter<Any?>>().zip(json).forEach { (filter, obj) ->
-            deserialize(filter, obj.jsonObject)
+        val jsonByKey = json.mapNotNull { obj ->
+            val jsonObj = obj.jsonObject
+            val name = jsonObj["name"]?.jsonPrimitive?.content
+            val type = jsonObj[TYPE]?.jsonPrimitive?.content
+            if (name != null && type != null) "$name|$type" to jsonObj else null
+        }.toMap()
+        filters.filterIsInstance<Filter<Any?>>().forEach { filter ->
+            val filterType = typeForFilter(filter)
+            val key = "${filter.name}|$filterType"
+            val jsonObj = jsonByKey[key]
+            if (jsonObj != null) {
+                deserialize(filter, jsonObj)
+            }
         }
+    }
+
+    private fun typeForFilter(filter: Filter<*>): String? {
+        return serializers.firstOrNull { filter::class.isSubclassOf(it.clazz) }?.type
     }
 
     fun deserialize(filter: Filter<Any?>, json: JsonObject) {

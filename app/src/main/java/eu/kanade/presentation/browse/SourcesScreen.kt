@@ -28,6 +28,7 @@ import eu.kanade.presentation.browse.components.BaseSourceItem
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel.Listing
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.domain.source.model.Pin
 import tachiyomi.domain.source.model.Source
 import tachiyomi.i18n.MR
@@ -59,11 +60,42 @@ fun SourcesScreen(
             modifier = Modifier.padding(contentPadding),
         )
         else -> {
+            val filteredItems = if (state.searchQuery.isNullOrBlank()) {
+                state.items
+            } else {
+                val query = state.searchQuery.lowercase().trim()
+                buildList {
+                    var currentHeader: SourceUiModel.Header? = null
+                    val matchedItems = mutableListOf<SourceUiModel.Item>()
+                    for (item in state.items) {
+                        when (item) {
+                            is SourceUiModel.Header -> {
+                                if (currentHeader != null && matchedItems.isNotEmpty()) {
+                                    add(currentHeader)
+                                    addAll(matchedItems)
+                                }
+                                currentHeader = item
+                                matchedItems.clear()
+                            }
+                            is SourceUiModel.Item -> {
+                                if (item.source.name.lowercase().contains(query)) {
+                                    matchedItems.add(item)
+                                }
+                            }
+                        }
+                    }
+                    if (currentHeader != null && matchedItems.isNotEmpty()) {
+                        add(currentHeader)
+                        addAll(matchedItems)
+                    }
+                }.toImmutableList()
+            }
+
             ScrollbarLazyColumn(
                 contentPadding = contentPadding + topSmallPaddingValues,
             ) {
                 items(
-                    items = state.items,
+                    items = filteredItems,
                     contentType = {
                         when (it) {
                             is SourceUiModel.Header -> "header"

@@ -269,6 +269,7 @@ fun ExpandableMangaDescription(
     // SY -->
     searchMetadataChips: SearchMetadataChips?,
     doSearch: (query: String, global: Boolean) -> Unit,
+    onTagSearchFromSource: ((String) -> Unit)? = null,
     // SY <--
     modifier: Modifier = Modifier,
 ) {
@@ -337,6 +338,9 @@ fun ExpandableMangaDescription(
                                 tagSelected = it
                                 showMenu = true
                             },
+                            onLongClick = { tag ->
+                                onTagSearchFromSource?.invoke(tag)
+                            },
                         )
                     } else {
                         // SY <--
@@ -351,6 +355,9 @@ fun ExpandableMangaDescription(
                                     onClick = {
                                         tagSelected = it
                                         showMenu = true
+                                    },
+                                    onLongClick = {
+                                        onTagSearchFromSource?.invoke(it)
                                     },
                                 )
                             }
@@ -368,6 +375,9 @@ fun ExpandableMangaDescription(
                                 onClick = {
                                     tagSelected = it
                                     showMenu = true
+                                },
+                                onLongClick = {
+                                    onTagSearchFromSource?.invoke(it)
                                 },
                             )
                         }

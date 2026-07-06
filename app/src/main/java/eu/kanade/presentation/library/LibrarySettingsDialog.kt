@@ -29,7 +29,9 @@ import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import kotlinx.coroutines.flow.map
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.library.model.FilterKey
 import tachiyomi.domain.library.model.LibraryDisplayMode
+import tachiyomi.domain.library.model.LibraryFilterFlags
 import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.domain.library.model.LibrarySort
 import tachiyomi.domain.library.model.sort
@@ -74,6 +76,7 @@ fun LibrarySettingsDialog(
         ) {
             when (page) {
                 0 -> FilterPage(
+                    category = category,
                     screenModel = screenModel,
                 )
                 1 -> SortPage(
@@ -96,9 +99,40 @@ fun LibrarySettingsDialog(
 
 @Composable
 private fun ColumnScope.FilterPage(
+    category: Category?,
     screenModel: LibrarySettingsScreenModel,
 ) {
-    val filterDownloaded by screenModel.libraryPreferences.filterDownloaded.collectAsState()
+    val isPerCategory = category != null && screenModel.libraryPreferences.categorizedFilterSettings.collectAsState().value
+    val catFlags = if (isPerCategory) category.flags else 0L
+
+    val filterMode = if (isPerCategory) {
+        LibraryFilterFlags.getMode(catFlags)
+    } else {
+        screenModel.libraryPreferences.filterMode.collectAsState().value
+    }
+
+    SettingsChipRow(SYMR.strings.filter_mode) {
+        FilterChip(
+            selected = !filterMode,
+            onClick = {
+                if (filterMode) screenModel.toggleFilterMode(if (isPerCategory) category else null)
+            },
+            label = { Text(stringResource(SYMR.strings.filter_mode_and)) },
+        )
+        FilterChip(
+            selected = filterMode,
+            onClick = {
+                if (!filterMode) screenModel.toggleFilterMode(if (isPerCategory) category else null)
+            },
+            label = { Text(stringResource(SYMR.strings.filter_mode_or)) },
+        )
+    }
+
+    val filterDownloaded = if (isPerCategory) {
+        LibraryFilterFlags.getDownloaded(catFlags)
+    } else {
+        screenModel.libraryPreferences.filterDownloaded.collectAsState().value
+    }
     val downloadedOnly by screenModel.preferences.downloadedOnly.collectAsState()
     val autoUpdateMangaRestrictions by screenModel.libraryPreferences.autoUpdateMangaRestrictions.collectAsState()
 
@@ -110,50 +144,74 @@ private fun ColumnScope.FilterPage(
             filterDownloaded
         },
         enabled = !downloadedOnly,
-        onClick = { screenModel.toggleFilter(LibraryPreferences::filterDownloaded) },
+        onClick = { screenModel.toggleFilter(if (isPerCategory) category else null, FilterKey.DOWNLOADED) },
     )
-    val filterUnread by screenModel.libraryPreferences.filterUnread.collectAsState()
+    val filterUnread = if (isPerCategory) {
+        LibraryFilterFlags.getUnread(catFlags)
+    } else {
+        screenModel.libraryPreferences.filterUnread.collectAsState().value
+    }
     TriStateItem(
         label = stringResource(MR.strings.action_filter_unread),
         state = filterUnread,
-        onClick = { screenModel.toggleFilter(LibraryPreferences::filterUnread) },
+        onClick = { screenModel.toggleFilter(if (isPerCategory) category else null, FilterKey.UNREAD) },
     )
-    val filterStarted by screenModel.libraryPreferences.filterStarted.collectAsState()
+    val filterStarted = if (isPerCategory) {
+        LibraryFilterFlags.getStarted(catFlags)
+    } else {
+        screenModel.libraryPreferences.filterStarted.collectAsState().value
+    }
     TriStateItem(
         label = stringResource(MR.strings.label_started),
         state = filterStarted,
-        onClick = { screenModel.toggleFilter(LibraryPreferences::filterStarted) },
+        onClick = { screenModel.toggleFilter(if (isPerCategory) category else null, FilterKey.STARTED) },
     )
-    val filterBookmarked by screenModel.libraryPreferences.filterBookmarked.collectAsState()
+    val filterBookmarked = if (isPerCategory) {
+        LibraryFilterFlags.getBookmarked(catFlags)
+    } else {
+        screenModel.libraryPreferences.filterBookmarked.collectAsState().value
+    }
     TriStateItem(
         label = stringResource(MR.strings.action_filter_bookmarked),
         state = filterBookmarked,
-        onClick = { screenModel.toggleFilter(LibraryPreferences::filterBookmarked) },
+        onClick = { screenModel.toggleFilter(if (isPerCategory) category else null, FilterKey.BOOKMARKED) },
     )
-    val filterCompleted by screenModel.libraryPreferences.filterCompleted.collectAsState()
+    val filterCompleted = if (isPerCategory) {
+        LibraryFilterFlags.getCompleted(catFlags)
+    } else {
+        screenModel.libraryPreferences.filterCompleted.collectAsState().value
+    }
     TriStateItem(
         label = stringResource(MR.strings.completed),
         state = filterCompleted,
-        onClick = { screenModel.toggleFilter(LibraryPreferences::filterCompleted) },
+        onClick = { screenModel.toggleFilter(if (isPerCategory) category else null, FilterKey.COMPLETED) },
     )
     // TODO: re-enable when custom intervals are ready for stable
     if (
         (isDebugBuildType || isPreviewBuildType) &&
         LibraryPreferences.MANGA_OUTSIDE_RELEASE_PERIOD in autoUpdateMangaRestrictions
     ) {
-        val filterIntervalCustom by screenModel.libraryPreferences.filterIntervalCustom.collectAsState()
+        val filterIntervalCustom = if (isPerCategory) {
+            LibraryFilterFlags.getIntervalCustom(catFlags)
+        } else {
+            screenModel.libraryPreferences.filterIntervalCustom.collectAsState().value
+        }
         TriStateItem(
             label = stringResource(MR.strings.action_filter_interval_custom),
             state = filterIntervalCustom,
-            onClick = { screenModel.toggleFilter(LibraryPreferences::filterIntervalCustom) },
+            onClick = { screenModel.toggleFilter(if (isPerCategory) category else null, FilterKey.INTERVAL_CUSTOM) },
         )
     }
     // SY -->
-    val filterLewd by screenModel.libraryPreferences.filterLewd.collectAsState()
+    val filterLewd = if (isPerCategory) {
+        LibraryFilterFlags.getLewd(catFlags)
+    } else {
+        screenModel.libraryPreferences.filterLewd.collectAsState().value
+    }
     TriStateItem(
         label = stringResource(SYMR.strings.lewd),
         state = filterLewd,
-        onClick = { screenModel.toggleFilter(LibraryPreferences::filterLewd) },
+        onClick = { screenModel.toggleFilter(if (isPerCategory) category else null, FilterKey.LEWD) },
     )
     // SY <--
 
@@ -225,6 +283,9 @@ private fun ColumnScope.SortPage(
         listOfNotNull(
             MR.strings.action_sort_alpha to LibrarySort.Type.Alphabetical,
             MR.strings.action_sort_total to LibrarySort.Type.TotalChapters,
+            // SY -->
+            SYMR.strings.action_sort_total_items to LibrarySort.Type.TotalItems,
+            // SY <--
             MR.strings.action_sort_last_read to LibrarySort.Type.LastRead,
             MR.strings.action_sort_last_manga_update to LibrarySort.Type.LastUpdate,
             MR.strings.action_sort_unread_count to LibrarySort.Type.UnreadCount,
@@ -342,6 +403,12 @@ private fun ColumnScope.DisplayPage(
         label = stringResource(MR.strings.action_display_show_continue_reading_button),
         pref = screenModel.libraryPreferences.showContinueReadingButton,
     )
+    // SY -->
+    CheckboxItem(
+        label = stringResource(SYMR.strings.action_display_pages_badge),
+        pref = screenModel.libraryPreferences.showPagesBadge,
+    )
+    // SY <--
 
     HeadingItem(MR.strings.tabs_header)
     CheckboxItem(

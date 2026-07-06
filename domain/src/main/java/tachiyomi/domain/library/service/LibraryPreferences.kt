@@ -109,6 +109,8 @@ class LibraryPreferences(
         TriState.DISABLED,
     )
 
+    val filterMode: Preference<Boolean> = preferenceStore.getBoolean("pref_filter_library_mode", false)
+
     // endregion
 
     // region Badges
@@ -120,6 +122,10 @@ class LibraryPreferences(
     val localBadge: Preference<Boolean> = preferenceStore.getBoolean("display_local_badge", true)
 
     val languageBadge: Preference<Boolean> = preferenceStore.getBoolean("display_language_badge", false)
+
+    // SY -->
+    val showPagesBadge: Preference<Boolean> = preferenceStore.getBoolean("display_pages_badge", false)
+    // SY <--
 
     val newShowUpdatesCount: Preference<Boolean> = preferenceStore.getBoolean("library_show_updates_count", true)
     val newUpdatesCount: Preference<Int> = preferenceStore.getInt(
@@ -140,6 +146,8 @@ class LibraryPreferences(
     val categoryNumberOfItems: Preference<Boolean> = preferenceStore.getBoolean("display_number_of_items", false)
 
     val categorizedDisplaySettings: Preference<Boolean> = preferenceStore.getBoolean("categorized_display", false)
+
+    val categorizedFilterSettings: Preference<Boolean> = preferenceStore.getBoolean("categorized_filter", false)
 
     val updateCategories: Preference<Set<String>> = preferenceStore.getStringSet(
         LIBRARY_UPDATE_CATEGORIES_PREF_KEY,

@@ -95,6 +95,7 @@ value class SearchMetadataChips(
 fun NamespaceTags(
     tags: SearchMetadataChips,
     onClick: (item: String) -> Unit,
+    onLongClick: ((item: String) -> Unit)? = null,
 ) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         tags.tags.forEach { (namespace, tags) ->
@@ -116,6 +117,7 @@ fun NamespaceTags(
                             modifier = Modifier.padding(vertical = 4.dp),
                             text = text,
                             onClick = { onClick(search) },
+                            onLongClick = onLongClick?.let { { it(search) } },
                             border = borderDp?.let {
                                 SuggestionChipDefaults.suggestionChipBorder(borderWidth = it)
                             } ?: SuggestionChipDefaults.suggestionChipBorder(),
@@ -134,6 +136,7 @@ fun NamespaceTags(
 fun TagsChip(
     text: String,
     onClick: (() -> Unit)?,
+    onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     border: ChipBorder? = SuggestionChipDefaults.suggestionChipBorder(),
     borderM3: BorderStroke? = SuggestionChipDefaultsM3.suggestionChipBorder(enabled = true),
@@ -143,6 +146,7 @@ fun TagsChip(
             SuggestionChip(
                 modifier = modifier,
                 onClick = onClick,
+                onLongClick = onLongClick ?: {},
                 label = {
                     Text(
                         text = text,
@@ -151,7 +155,7 @@ fun TagsChip(
                         overflow = TextOverflow.Ellipsis,
                     )
                 },
-                border = borderM3,
+                border = border,
             )
         } else {
             SuggestionChip(

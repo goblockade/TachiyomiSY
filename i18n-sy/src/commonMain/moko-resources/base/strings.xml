@@ -9,6 +9,8 @@
     <string name="action_clean_titles">Clean titles</string>
     <string name="action_start_reading">Start reading</string>
     <string name="action_edit_info">Edit info</string>
+    <string name="action_search_from_source">Search from source</string>
+    <string name="action_toggle_nsfw_only">Toggle NSFW only</string>
 
     <!-- Entry Type -->
     <string name="entry_type_manga">Manga</string>
@@ -418,6 +420,7 @@
     <string name="searching_source">Searching source…</string>
     <string name="could_not_find_entry">Couldn\'t find the entry in the source!</string>
     <string name="automatic_search_error">Error performing automatic search!</string>
+    <string name="search_source_hint">Search sources by name</string>
 
     <!-- Saved Searches -->
     <string name="saved_searches">Saved Searches</string>
@@ -427,6 +430,9 @@
     <string name="save_search_failed_to_load_message">An error occurred while loading your saved searches.</string>
     <string name="save_search_delete">Delete saved search query?</string>
     <string name="save_search_delete_message">Are you sure you wish to delete your saved search query: \'%1$s\'?</string>
+    <string name="save_search_update">Update saved search?</string>
+    <string name="save_search_update_message">Update saved search \'%1$s\' with current query and filters?</string>
+    <string name="save_search_update_action">Update</string>
     <string name="save_search_invalid">Saved search invalid, filters have changed</string>
     <string name="save_search_invalid_name">Invalid saved search name</string>
 
@@ -495,6 +501,27 @@
     <string name="rec_processing_state">Processing entry %1$d of %2$d</string>
     <string name="rec_collecting">Collecting recommendations</string>
     <string name="rec_initializing">Initializing</string>
+
+    <!-- Shortcuts -->
+    <string name="shortcuts">Shortcuts</string>
+    <string name="add_shortcut">Add Shortcut</string>
+    <string name="shortcut_name">Shortcut name</string>
+    <string name="shortcut_name_exists">Shortcut name already exists</string>
+    <string name="shortcut_name_hint">Enter shortcut name</string>
+    <string name="shortcuts_empty">No shortcuts yet</string>
+    <string name="shortcuts_sort_date">Date</string>
+    <string name="shortcuts_sort_source">Source</string>
+    <string name="shortcuts_sort_alphabetical">Alphabetically</string>
+    <string name="shortcuts_sort_random">Random</string>
+    <string name="delete_shortcut_confirmation">Delete this shortcut?</string>
+    <string name="shortcuts_group">Group</string>
+    <string name="shortcuts_group_source">Source</string>
+    <string name="shortcuts_group_name">Name</string>
+    <string name="shortcuts_group_ungrouped">Ungrouped</string>
+    <string name="action_sort_total_items">Total items (pages / chapters)</string>
+    <string name="action_display_pages_badge">Show pages badge</string>
+    <string name="pref_hide_shortcuts_tab">Hide Shortcuts tab</string>
+    <string name="pref_hide_migrate_tab">Hide Migrate tab</string>
 
     <!-- Library -->
     <!-- Library Actions -->
@@ -738,4 +765,10 @@
 
     <!-- Humanize time -->
     <string name="humanize_fallback">moments ago</string>
+
+    <!-- Library filter -->
+    <string name="filter_mode">Filter mode</string>
+    <string name="filter_mode_and">AND</string>
+    <string name="filter_mode_or">OR</string>
+    <string name="categorized_filter_settings">Per-category settings for filter</string>
 </resources>

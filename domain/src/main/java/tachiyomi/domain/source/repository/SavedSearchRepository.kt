@@ -11,9 +11,15 @@ interface SavedSearchRepository {
 
     fun getBySourceIdAsFlow(sourceId: Long): Flow<List<SavedSearch>>
 
+    suspend fun getAll(): List<SavedSearch>
+
+    fun getAllAsFlow(): Flow<List<SavedSearch>>
+
     suspend fun delete(savedSearchId: Long)
 
     suspend fun insert(savedSearch: SavedSearch): Long?
 
     suspend fun insertAll(savedSearch: List<SavedSearch>)
+
+    suspend fun update(savedSearchId: Long, name: String)
 }

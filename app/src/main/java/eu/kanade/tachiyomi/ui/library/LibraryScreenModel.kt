@@ -87,6 +87,7 @@ import tachiyomi.domain.chapter.interactor.GetMergedChaptersByMangaId
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.history.interactor.GetNextChapters
 import tachiyomi.domain.library.model.LibraryDisplayMode
+import tachiyomi.domain.library.model.LibraryFilterFlags
 import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.library.model.LibrarySort
@@ -126,7 +127,7 @@ class LibraryScreenModel(
     private val updateManga: UpdateManga = Injekt.get(),
     private val setMangaCategories: SetMangaCategories = Injekt.get(),
     private val preferences: BasePreferences = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
+    val libraryPreferences: LibraryPreferences = Injekt.get(),
     private val coverCache: CoverCache = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
     private val downloadManager: DownloadManager = Injekt.get(),
@@ -183,7 +184,7 @@ class LibraryScreenModel(
             ) { (searchQuery, categories, favorites), (tracksMap, trackingFilters), /* SY --> */ (groupType, sortingMode)/* <-- SY */, itemPreferences ->
                 val showSystemCategory = favorites.any { it.libraryManga.categories.contains(0) }
                 val filteredFavorites = favorites
-                    .applyFilters(tracksMap, trackingFilters, itemPreferences)
+                    .applyFilters(tracksMap, trackingFilters, itemPreferences, itemPreferences.categorizedFilterSettings)
                     .let {
                         if (searchQuery == null) {
                             it
@@ -202,6 +203,10 @@ class LibraryScreenModel(
                     favorites = filteredFavorites,
                     tracksMap = tracksMap,
                     loggedInTrackerIds = trackingFilters.keys,
+                    // SY -->
+                    trackingFilters = trackingFilters,
+                    categorizedFilterSettings = itemPreferences.categorizedFilterSettings,
+                    // SY <--
                 )
             }
                 .distinctUntilChanged()
@@ -233,6 +238,15 @@ class LibraryScreenModel(
                             groupType,
                             // SY <--
                         )
+                        // SY -->
+                        .applyPerCategoryFilters(
+                            favoritesById = data.favoritesById,
+                            trackMap = data.tracksMap,
+                            trackingFilter = data.trackingFilters,
+                            categorizedFilterSettings = data.categorizedFilterSettings,
+                            groupType = groupType,
+                        )
+                        // SY <--
                         .applySort(
                             data.favoritesById,
                             data.tracksMap,
@@ -343,7 +357,10 @@ class LibraryScreenModel(
         trackMap: Map<Long, List<Track>>,
         trackingFilter: Map<Long, TriState>,
         preferences: ItemPreferences,
+        categorizedFilterSettings: Boolean = false,
     ): List<LibraryItem> {
+        if (categorizedFilterSettings) return this
+        val isOrMode = preferences.filterMode
         val downloadedOnly = preferences.globalFilterDownloaded
         val skipOutsideReleasePeriod = preferences.skipOutsideReleasePeriod
         val filterDownloaded = if (downloadedOnly) TriState.ENABLED_IS else preferences.filterDownloaded
@@ -408,19 +425,114 @@ class LibraryScreenModel(
             !isExcluded && isIncluded
         }
 
-        return fastFilter {
-            filterFnDownloaded(it) &&
-                filterFnUnread(it) &&
-                filterFnStarted(it) &&
-                filterFnBookmarked(it) &&
-                filterFnCompleted(it) &&
-                filterFnIntervalCustom(it) &&
-                filterFnTracking(it) &&
-                // SY -->
-                filterFnLewd(it)
-            // SY <--
+        return fastFilter { item ->
+            if (isOrMode) {
+                val anyActive = filterDownloaded != TriState.DISABLED ||
+                    filterUnread != TriState.DISABLED ||
+                    filterStarted != TriState.DISABLED ||
+                    filterBookmarked != TriState.DISABLED ||
+                    filterCompleted != TriState.DISABLED ||
+                    filterIntervalCustom != TriState.DISABLED ||
+                    filterLewd != TriState.DISABLED ||
+                    !trackFiltersIsIgnored
+
+                if (!anyActive) return@fastFilter true
+
+                (filterDownloaded != TriState.DISABLED && filterFnDownloaded(item)) ||
+                    (filterUnread != TriState.DISABLED && filterFnUnread(item)) ||
+                    (filterStarted != TriState.DISABLED && filterFnStarted(item)) ||
+                    (filterBookmarked != TriState.DISABLED && filterFnBookmarked(item)) ||
+                    (filterCompleted != TriState.DISABLED && filterFnCompleted(item)) ||
+                    (filterIntervalCustom != TriState.DISABLED && filterFnIntervalCustom(item)) ||
+                    (filterLewd != TriState.DISABLED && filterFnLewd(item)) ||
+                    (!trackFiltersIsIgnored && filterFnTracking(item))
+            } else {
+                filterFnDownloaded(item) &&
+                    filterFnUnread(item) &&
+                    filterFnStarted(item) &&
+                    filterFnBookmarked(item) &&
+                    filterFnCompleted(item) &&
+                    filterFnIntervalCustom(item) &&
+                    filterFnTracking(item) &&
+                    filterFnLewd(item)
+            }
         }
     }
+
+    // SY -->
+    private fun Map<Category, List<Long>>.applyPerCategoryFilters(
+        favoritesById: Map<Long, LibraryItem>,
+        trackMap: Map<Long, List<Track>>,
+        trackingFilter: Map<Long, TriState>,
+        categorizedFilterSettings: Boolean,
+        groupType: Int,
+    ): Map<Category, List<Long>> {
+        if (!categorizedFilterSettings || groupType != LibraryGroup.BY_DEFAULT) return this
+
+        val isNotLoggedInAnyTrack = trackingFilter.isEmpty()
+        val excludedTracks = trackingFilter.mapNotNull { if (it.value == TriState.ENABLED_NOT) it.key else null }
+        val includedTracks = trackingFilter.mapNotNull { if (it.value == TriState.ENABLED_IS) it.key else null }
+        val trackFiltersIsIgnored = includedTracks.isEmpty() && excludedTracks.isEmpty()
+
+        return mapValues { (category, mangaIds) ->
+            val flags = category.flags
+            val isOrMode = LibraryFilterFlags.getMode(flags)
+            val fDownloaded = LibraryFilterFlags.getDownloaded(flags)
+            val fUnread = LibraryFilterFlags.getUnread(flags)
+            val fStarted = LibraryFilterFlags.getStarted(flags)
+            val fBookmarked = LibraryFilterFlags.getBookmarked(flags)
+            val fCompleted = LibraryFilterFlags.getCompleted(flags)
+            val fIntervalCustom = LibraryFilterFlags.getIntervalCustom(flags)
+            val fLewd = LibraryFilterFlags.getLewd(flags)
+
+            val anyActive = fDownloaded != TriState.DISABLED ||
+                fUnread != TriState.DISABLED ||
+                fStarted != TriState.DISABLED ||
+                fBookmarked != TriState.DISABLED ||
+                fCompleted != TriState.DISABLED ||
+                fIntervalCustom != TriState.DISABLED ||
+                fLewd != TriState.DISABLED ||
+                !trackFiltersIsIgnored
+
+            mangaIds.filter { mangaId ->
+                val item = favoritesById[mangaId] ?: return@filter true
+
+                val downloadedOk = applyFilter(fDownloaded) {
+                    item.libraryManga.manga.isLocal() ||
+                        item.downloadCount > 0 ||
+                        downloadManager.getDownloadCount(item.libraryManga.manga) > 0
+                }
+                val unreadOk = applyFilter(fUnread) { item.libraryManga.unreadCount > 0 }
+                val startedOk = applyFilter(fStarted) { item.libraryManga.hasStarted }
+                val bookmarkedOk = applyFilter(fBookmarked) { item.libraryManga.hasBookmarks }
+                val completedOk = applyFilter(fCompleted) { item.libraryManga.manga.status.toInt() == SManga.COMPLETED }
+                val lewdOk = applyFilter(fLewd) { item.libraryManga.manga.isLewd() }
+
+                val trackingOk = if (isNotLoggedInAnyTrack || trackFiltersIsIgnored) {
+                    true
+                } else {
+                    val mangaTracks = trackMap[item.id].orEmpty().map { it.trackerId }
+                    val isExcluded = excludedTracks.isNotEmpty() && mangaTracks.fastAny { it in excludedTracks }
+                    val isIncluded = includedTracks.isEmpty() || mangaTracks.fastAny { it in includedTracks }
+                    !isExcluded && isIncluded
+                }
+
+                if (isOrMode) {
+                    if (!anyActive) return@filter true
+                    (fDownloaded != TriState.DISABLED && downloadedOk) ||
+                        (fUnread != TriState.DISABLED && unreadOk) ||
+                        (fStarted != TriState.DISABLED && startedOk) ||
+                        (fBookmarked != TriState.DISABLED && bookmarkedOk) ||
+                        (fCompleted != TriState.DISABLED && completedOk) ||
+                        (fLewd != TriState.DISABLED && lewdOk) ||
+                        (!trackFiltersIsIgnored && trackingOk)
+                } else {
+                    downloadedOk && unreadOk && startedOk && bookmarkedOk && completedOk && lewdOk && trackingOk
+                }
+            }
+        }
+    }
+    // SY <--
 
     private fun List<LibraryItem>.applyGrouping(
         categories: List<Category>,
@@ -508,6 +620,20 @@ class LibraryScreenModel(
             }
         }
 
+        fun parseTotalPages(description: String?): Long {
+            if (description == null) return 0L
+            val regex = Regex("""Pages:\s*(\d+)""", RegexOption.IGNORE_CASE)
+            return regex.find(description)?.groupValues?.get(1)?.toLongOrNull() ?: 0L
+        }
+
+        fun getTotalSortValue(item: LibraryItem): Long {
+            return if (item.libraryManga.totalChapters == 1L) {
+                parseTotalPages(item.libraryManga.manga.description)
+            } else {
+                item.libraryManga.totalChapters
+            }
+        }
+
         fun LibrarySort.comparator(): Comparator<LibraryItem> = Comparator { manga1, manga2 ->
             // SY -->
             val sort = groupSort ?: this
@@ -568,6 +694,10 @@ class LibraryScreenModel(
                     }
                     manga1IndexOfTag.compareTo(manga2IndexOfTag)
                 }
+
+                LibrarySort.Type.TotalItems -> {
+                    getTotalSortValue(manga1).compareTo(getTotalSortValue(manga2))
+                }
                 // SY <--
             }
         }
@@ -610,6 +740,8 @@ class LibraryScreenModel(
             // SY -->
             libraryPreferences.filterLewd.changes(),
             // SY <--
+            libraryPreferences.filterMode.changes(),
+            libraryPreferences.categorizedFilterSettings.changes(),
         ) {
             ItemPreferences(
                 downloadBadge = it[0] as Boolean,
@@ -626,6 +758,10 @@ class LibraryScreenModel(
                 filterIntervalCustom = it[11] as TriState,
                 // SY -->
                 filterLewd = it[12] as TriState,
+                // SY <--
+                filterMode = it[13] as Boolean,
+                // SY -->
+                categorizedFilterSettings = it[14] as Boolean,
                 // SY <--
             )
         }
@@ -1470,6 +1606,10 @@ class LibraryScreenModel(
         // SY -->
         val filterLewd: TriState,
         // SY <--
+        val filterMode: Boolean,
+        // SY -->
+        val categorizedFilterSettings: Boolean = false,
+        // SY <--
     )
 
     @Immutable
@@ -1480,6 +1620,10 @@ class LibraryScreenModel(
         val favorites: List<LibraryItem> = emptyList(),
         val tracksMap: Map</* Manga */ Long, List<Track>> = emptyMap(),
         val loggedInTrackerIds: Set<Long> = emptySet(),
+        // SY -->
+        val trackingFilters: Map<Long, TriState> = emptyMap(),
+        val categorizedFilterSettings: Boolean = false,
+        // SY <--
     ) {
         val favoritesById by lazy { favorites.associateBy { it.id } }
     }

@@ -23,6 +23,9 @@ internal fun LibraryList(
     onClickContinueReading: ((LibraryManga) -> Unit)?,
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
+    // SY -->
+    showPagesBadge: Boolean = false,
+    // SY <--
 ) {
     FastScrollLazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -60,6 +63,11 @@ internal fun LibraryList(
                         isLocal = libraryItem.badges.isLocal,
                         sourceLanguage = libraryItem.badges.sourceLanguage,
                     )
+                    // SY -->
+                    if (showPagesBadge) {
+                        PagesBadge(description = manga.description)
+                    }
+                    // SY <--
                 },
                 onLongClick = { onLongClick(libraryItem.libraryManga) },
                 onClick = { onClick(libraryItem.libraryManga) },

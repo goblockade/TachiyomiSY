@@ -17,6 +17,7 @@ import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.tachiyomi.ui.category.sources.SourceCategoryScreen
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
+import kotlinx.collections.immutable.persistentListOf
 import mihon.domain.extension.interactor.GetExtensionStoreCountAsFlow
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
@@ -92,6 +93,24 @@ object SettingsBrowseScreen : SearchableSettings {
                         title = stringResource(SYMR.strings.pref_feed_position),
                         subtitle = stringResource(SYMR.strings.pref_feed_position_summery),
                         enabled = hideFeedTab.not(),
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(SYMR.strings.shortcuts),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = uiPreferences.hideShortcutsTab,
+                        title = stringResource(SYMR.strings.pref_hide_shortcuts_tab),
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(MR.strings.migrate),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = uiPreferences.hideMigrateTab,
+                        title = stringResource(SYMR.strings.pref_hide_migrate_tab),
                     ),
                 ),
             ),

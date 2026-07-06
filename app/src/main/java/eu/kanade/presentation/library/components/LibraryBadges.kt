@@ -27,6 +27,26 @@ internal fun UnreadBadge(count: Long) {
     }
 }
 
+// SY -->
+private fun parsePages(description: String?): Long {
+    if (description == null) return 0L
+    val regex = Regex("""Pages:\s*(\d+)""", RegexOption.IGNORE_CASE)
+    return regex.find(description)?.groupValues?.get(1)?.toLongOrNull() ?: 0L
+}
+
+@Composable
+internal fun PagesBadge(description: String?) {
+    val count = parsePages(description)
+    if (count > 0) {
+        Badge(
+            text = "$count",
+            color = MaterialTheme.colorScheme.error,
+            textColor = MaterialTheme.colorScheme.onError,
+        )
+    }
+}
+// SY <--
+
 @Composable
 internal fun LanguageBadge(
     isLocal: Boolean,

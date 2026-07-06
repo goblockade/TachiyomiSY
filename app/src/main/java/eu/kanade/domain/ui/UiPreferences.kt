@@ -53,6 +53,10 @@ class UiPreferences(
 
     val feedTabInFront: Preference<Boolean> = preferenceStore.getBoolean("latest_tab_position", false)
 
+    val hideShortcutsTab: Preference<Boolean> = preferenceStore.getBoolean("hide_shortcuts_tab", false)
+
+    val hideMigrateTab: Preference<Boolean> = preferenceStore.getBoolean("hide_migrate_tab", false)
+
     val recommendsInOverflow: Preference<Boolean> = preferenceStore.getBoolean("recommends_in_overflow", false)
 
     val mergeInOverflow: Preference<Boolean> = preferenceStore.getBoolean("merge_in_overflow", true)
@@ -66,6 +70,10 @@ class UiPreferences(
     val showNavUpdates: Preference<Boolean> = preferenceStore.getBoolean("pref_show_updates_button", true)
 
     val showNavHistory: Preference<Boolean> = preferenceStore.getBoolean("pref_show_history_button", true)
+
+    val shortcutsSortMode: Preference<Int> = preferenceStore.getInt("shortcuts_sort_mode", 1) // Date
+    val shortcutsSortAscending: Preference<Boolean> = preferenceStore.getBoolean("shortcuts_sort_ascending", false)
+    val shortcutsGroupMode: Preference<Int> = preferenceStore.getInt("shortcuts_group_mode", 2) // Ungrouped
 
     // SY <--
 

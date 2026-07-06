@@ -132,6 +132,9 @@ fun MangaScreen(
     onRefresh: () -> Unit,
     onContinueReading: () -> Unit,
     onSearch: (query: String, global: Boolean) -> Unit,
+    // SY -->
+    onTagSearchFromSource: ((String) -> Unit)? = null,
+    // SY <--
 
     // For cover dialog
     onCoverClicked: () -> Unit,
@@ -196,6 +199,7 @@ fun MangaScreen(
             onRefresh = onRefresh,
             onContinueReading = onContinueReading,
             onSearch = onSearch,
+            onTagSearchFromSource = onTagSearchFromSource,
             onCoverClicked = onCoverClicked,
             onShareClicked = onShareClicked,
             onDownloadActionClicked = onDownloadActionClicked,
@@ -243,6 +247,7 @@ fun MangaScreen(
             onRefresh = onRefresh,
             onContinueReading = onContinueReading,
             onSearch = onSearch,
+            onTagSearchFromSource = onTagSearchFromSource,
             onCoverClicked = onCoverClicked,
             onShareClicked = onShareClicked,
             onDownloadActionClicked = onDownloadActionClicked,
@@ -291,6 +296,7 @@ private fun MangaScreenSmallImpl(
     // For tags menu
     onTagSearch: (String) -> Unit,
     onCopyTagToClipboard: (tag: String) -> Unit,
+    onTagSearchFromSource: ((String) -> Unit)? = null,
 
     onFilterClicked: () -> Unit,
     onRefresh: () -> Unit,
@@ -524,6 +530,7 @@ private fun MangaScreenSmallImpl(
                             onEditNotes = onEditNotesClicked,
                             // SY -->
                             doSearch = onSearch,
+                            onTagSearchFromSource = onTagSearchFromSource,
                             searchMetadataChips = remember(state.meta, state.source.id, state.manga.genre) {
                                 SearchMetadataChips(state.meta, state.source.id, state.manga.genre)
                             },
@@ -612,6 +619,7 @@ fun MangaScreenLargeImpl(
     // For tags menu
     onTagSearch: (String) -> Unit,
     onCopyTagToClipboard: (tag: String) -> Unit,
+    onTagSearchFromSource: ((String) -> Unit)? = null,
 
     onFilterButtonClicked: () -> Unit,
     onRefresh: () -> Unit,
@@ -817,6 +825,7 @@ fun MangaScreenLargeImpl(
                             onEditNotes = onEditNotesClicked,
                             // SY -->
                             doSearch = onSearch,
+                            onTagSearchFromSource = onTagSearchFromSource,
                             searchMetadataChips = remember(state.meta, state.source.id, state.manga.genre) {
                                 SearchMetadataChips(state.meta, state.source.id, state.manga.genre)
                             },

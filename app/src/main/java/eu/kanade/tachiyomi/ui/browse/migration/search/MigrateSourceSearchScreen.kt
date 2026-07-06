@@ -138,9 +138,6 @@ data class MigrateSourceSearchScreen(
                     // SY -->
                     startExpanded = screenModel.startExpanded,
                     onSave = {},
-                    savedSearches = emptyList(),
-                    onSavedSearch = {},
-                    onSavedSearchPress = {},
                     openMangaDexRandom = null,
                     openMangaDexFollows = null,
                     // SY <--

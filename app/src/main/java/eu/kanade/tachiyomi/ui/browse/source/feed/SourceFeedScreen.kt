@@ -96,28 +96,6 @@ class SourceFeedScreen(val sourceId: Long) : Screen() {
                     onUpdate = screenModel::setFilters,
                     startExpanded = screenModel.startExpanded,
                     onSave = {},
-                    savedSearches = state.savedSearches,
-                    onSavedSearch = { search ->
-                        screenModel.onSavedSearch(
-                            search,
-                            onBrowseClick = { query, searchId ->
-                                onBrowseClick(
-                                    navigator = navigator,
-                                    sourceId = sourceId,
-                                    search = query,
-                                    savedSearch = searchId,
-                                )
-                            },
-                            onToast = {
-                                context.toast(it)
-                            },
-                        )
-                    },
-                    onSavedSearchPress = { search ->
-                        screenModel.onSavedSearchAddToFeed(search) {
-                            context.toast(it)
-                        }
-                    },
                     openMangaDexRandom = if (screenModel.sourceIsMangaDex) {
                         {
                             screenModel.onMangaDexRandom {

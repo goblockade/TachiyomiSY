@@ -19,6 +19,7 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.os.postDelayed
 import androidx.core.view.isVisible
 import coil3.BitmapImage
+import coil3.DrawableImage
 import coil3.asDrawable
 import coil3.dispose
 import coil3.imageLoader
@@ -301,7 +302,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 isVisible = true
             }
             is BufferedSource -> {
-                if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
+                val isAvif = ImageUtil.findImageType(data.peek().inputStream()) == ImageUtil.ImageType.AVIF
+                if ((!isWebtoon || alwaysDecodeLongStripWithSSIV) && !isAvif) {
                     setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
@@ -314,9 +316,15 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .diskCachePolicy(CachePolicy.DISABLED)
                     .target(
                         onSuccess = { result ->
-                            val image = result as BitmapImage
-                            setImage(ImageSource.bitmap(image.bitmap))
-                            isVisible = true
+                            val bitmap = when (result) {
+                                is BitmapImage -> result.bitmap
+                                is DrawableImage -> (result.drawable as? BitmapDrawable)?.bitmap
+                                else -> null
+                            }
+                            if (bitmap != null) {
+                                setImage(ImageSource.bitmap(bitmap))
+                                isVisible = true
+                            }
                         },
                     )
                     .listener(

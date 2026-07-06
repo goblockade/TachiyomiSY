@@ -184,9 +184,14 @@ class SourcesScreenModel(
         val showPin: Boolean = true,
         val showLatest: Boolean = false,
         val dataSaverEnabled: Boolean = false,
+        val searchQuery: String? = null,
         // SY <--
     ) {
         val isEmpty = items.isEmpty()
+    }
+
+    fun setSearchQuery(query: String?) {
+        mutableState.update { it.copy(searchQuery = query) }
     }
 
     companion object {

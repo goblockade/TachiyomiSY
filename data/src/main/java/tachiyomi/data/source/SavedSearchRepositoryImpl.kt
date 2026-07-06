@@ -20,11 +20,11 @@ class SavedSearchRepositoryImpl(
     }
 
     override suspend fun getAll(): List<SavedSearch> {
-        return handler.awaitList { saved_searchQueries.selectAll(SavedSearchMapper::map) }
+        return database.saved_searchQueries.selectAll(SavedSearchMapper::map).awaitAsList()
     }
 
     override fun getAllAsFlow(): Flow<List<SavedSearch>> {
-        return handler.subscribeToList { saved_searchQueries.selectAll(SavedSearchMapper::map) }
+        return database.saved_searchQueries.selectAll(SavedSearchMapper::map).subscribeToList()
     }
 
     override suspend fun getBySourceId(sourceId: Long): List<SavedSearch> {
@@ -67,8 +67,6 @@ class SavedSearchRepositoryImpl(
     }
 
     override suspend fun update(savedSearchId: Long, name: String) {
-        handler.await {
-            saved_searchQueries.updateById(name, savedSearchId)
-        }
+        database.saved_searchQueries.updateById(name, savedSearchId)
     }
 }

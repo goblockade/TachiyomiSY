@@ -43,7 +43,6 @@ fun SourceFilterDialog(
     onUpdate: (FilterList) -> Unit,
     // SY -->
     startExpanded: Boolean,
-    savedSearches: List<EXHSavedSearch>,
     onSave: () -> Unit,
     openMangaDexRandom: (() -> Unit)?,
     openMangaDexFollows: (() -> Unit)?,
